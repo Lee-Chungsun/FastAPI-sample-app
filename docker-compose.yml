@@ -1,21 +1,41 @@
 version: "3.9"
 
 services: 
-    db:
-        image: postgres:13
+  db:
+    image: postgres:13
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
 
-    
-    pgadmin:
-        image: dpage/pgadmin4
-        logging:
-            driver: none
-        ports:
-            - "5050:80"
+  pgadmin:
+    image: dpage/pgadmin4
+    logging:
+      driver: none
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    restart: always
+    volumes:
+      - pgadmindata:/var/lib/pgadmin
 
-    web:
-        command: bash -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
-        volumes: 
-          - .:/code
+  web:
+    command: bash -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+    ports:
+      - "8000:8000"
+    volumes: 
+      - .:/code
+    build: .
+    restart: always
+    depends_on:
+      - db
 
 volumes: 
   pgdata:
